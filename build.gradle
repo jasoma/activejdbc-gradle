@@ -8,7 +8,7 @@ buildscript {
     }
     dependencies {
         classpath group: 'org.javalite', name: 'activejdbc', version: '1.4.9'
-        classpath group: 'org.javalite', name: 'activejdbc-instrumentation', version: '1.4.9'	
+        classpath group: 'org.javalite', name: 'activejdbc-instrumentation', version: '1.4.9'
     }
 }
 
@@ -17,7 +17,7 @@ repositories {
 }
 
 dependencies {
-    compile group: 'mysql', name: 'mysql-connector-java', version: '5.1.25'
+    compile group: 'com.h2database', name: 'h2', version: '1.4.189'
     compile group: 'org.javalite', name: 'activejdbc', version: '1.4.9'
     compile group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.5'
     testCompile group: 'junit', name: 'junit', version: '4.8.2'
@@ -25,9 +25,9 @@ dependencies {
 
 // from the Griffon ActiveJDBC plugin
 def addUrlIfNotPresent( to, what ) {
-    if ( !to || !what ) { return } 
+    if ( !to || !what ) { return }
     def urls = to.URLs.toList()
-    switch( what.class ) { 
+    switch( what.class ) {
       case URL: what = new File( what.toURI() ); break
       case String: what = new File( what ); break
       case GString: what = new File( what.toString() ); break
@@ -39,7 +39,7 @@ def addUrlIfNotPresent( to, what ) {
 
     if ( what.directory && !what.exists() ) { what.mkdirs() }
     def url = what.toURI().toURL()
-    if ( !urls.contains( url ) && ( what.directory || !urls.find{ it.path.endsWith( what.name ) } ) ) { 
+    if ( !urls.contains( url ) && ( what.directory || !urls.find{ it.path.endsWith( what.name ) } ) ) {
         to.addURL( url )
     }
 }
@@ -47,13 +47,24 @@ def addUrlIfNotPresent( to, what ) {
 // Instrument models: borowed from the Griffon ActiveJDBC plugin.
 compileJava.doLast {
     Instrumentation instrumentation = new Instrumentation()
-    projectMainClassesDir = sourceSets.main.output.classesDir.getPath()
-    rootLoader = this.class.classLoader.rootLoader
+    def projectMainClassesDir = sourceSets.main.output.classesDir.getPath()
+    def rootLoader = this.class.classLoader.rootLoader
     instrumentation.outputDirectory = projectMainClassesDir
     addUrlIfNotPresent rootLoader, projectMainClassesDir
     addUrlIfNotPresent Instrumentation.class.classLoader, projectMainClassesDir
     instrumentation.instrument()
 }
+
+clean {
+    delete fileTree(dir: "src/test/resources", include: "db.*")
+}
+
+task createDb(type: JavaExec, dependsOn: compileJava) {
+    classpath = sourceSets.main.runtimeClasspath
+    main = 'activejdbc.examples.simple.CreateDatabase'
+}
+
+test.dependsOn << createDb
 
 task run(dependsOn: 'build', type: JavaExec) {
     main = 'activejdbc.examples.simple.SimpleExample'

@@ -8,7 +8,7 @@ public class SimpleExample {
     final static Logger logger = LoggerFactory.getLogger(SimpleExample.class);
     public static void main(String[] args) {
 
-        Base.open("com.mysql.jdbc.Driver", "jdbc:mysql://localhost/test", "root", "p@ssw0rd");
+        Base.open("org.h2.Driver", "jdbc:h2:file:./src/test/resources/db", "root", "p@ssw0rd");
 
         createEmployee();
         logger.info("=========> Created employee:");
