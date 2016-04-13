@@ -9,6 +9,7 @@ buildscript {
     }
     dependencies {
         classpath group: 'org.javalite', name: 'activejdbc-gradle-plugin', version: '1.4.12-SNAPSHOT'
+        classpath 'com.fasterxml.jackson.core:jackson-databind:2.6.5'
     }
 }
 
